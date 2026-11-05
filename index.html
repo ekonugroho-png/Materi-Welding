@@ -4520,28 +4520,9 @@ App.videos={
   ],
 };
 
-/* Pemutar YouTube resmi dengan deteksi error dari IFrame Player API.
-   Jangan menghilangkan Referer dari halaman GitHub Pages. */
-App.ensureYouTubeApi=function(){
-  if(window.YT && typeof window.YT.Player==='function')return Promise.resolve(true);
-  if(this._youtubeApiPromise)return this._youtubeApiPromise;
-  this._youtubeApiPromise=new Promise(resolve=>{
-    let completed=false;
-    const done=ok=>{if(completed)return;completed=true;resolve(ok)};
-    const previous=window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady=function(){
-      if(typeof previous==='function')try{previous()}catch(e){console.warn(e)}
-      done(!!(window.YT && typeof window.YT.Player==='function'));
-    };
-    const script=document.createElement('script');
-    script.src='https://www.youtube.com/iframe_api';
-    script.async=true;
-    script.onerror=()=>done(false);
-    document.head.appendChild(script);
-    setTimeout(()=>done(!!(window.YT && typeof window.YT.Player==='function')),9000);
-  });
-  return this._youtubeApiPromise;
-};
+/* Pemutar YouTube: iframe resmi langsung dari halaman HTTPS GitHub Pages.
+   Tanpa IFrame Player API agar iframe tidak dibuat ulang oleh skrip luar;
+   Referer dikirim sesuai referrerPolicy di bawah. */
 App.renderers.video=function(){
   return `
   <div class="panel-header">
@@ -4601,15 +4582,14 @@ App.binders.video=function(){
   const hint=document.getElementById('videoPlayerHint');
   const retryBtn=document.getElementById('videoRetryBtn');
   const modeBtn=document.getElementById('videoModeBtn');
-  let cat='SMAW',selectedId='',alternateMode=false,playerApi=null,generation=0;
+  let cat='SMAW',selectedId='',alternateMode=false,generation=0;
   const buildEmbedUrl=id=>{
     const domain=alternateMode?'https://www.youtube-nocookie.com/embed/':'https://www.youtube.com/embed/';
-    const params=new URLSearchParams({playsinline:'1',rel:'0',enablejsapi:'1'});
+    const params=new URLSearchParams({playsinline:'1',rel:'0'});
     if(location.protocol==='https:' || location.protocol==='http:')params.set('origin',location.origin);
     return domain+encodeURIComponent(id)+'?'+params.toString();
   };
   const release=()=>{
-    if(playerApi){try{playerApi.destroy()}catch(e){}playerApi=null}
     // Perhatikan konten milik menu lain: hanya hapus elemen di area video.
     mount.replaceChildren();
   };
@@ -4634,41 +4614,32 @@ App.binders.video=function(){
     }
     hint.textContent='Kesalahan YouTube '+code+'. Coba mode alternatif; jika tetap gagal, gunakan tautan cadangan.';
   };
-  const loadPlayer=async()=>{
+  // Satu iframe untuk satu video; jangan tunggu API tambahan atau menimpa iframe.
+  const loadPlayer=()=>{
     if(!selectedId)return;
     const token=++generation;
     release();
     errorPanel.hidden=true;
-    hint.textContent='Menyiapkan pemutar YouTube di dalam website…';
-    const apiReady=await App.ensureYouTubeApi();
-    // Pengguna mungkin sudah berganti menu/video selama API dimuat.
-    if(token!==generation || !selectedId || !mount.isConnected)return;
-    if(location.protocol==='file:'){
-      hint.textContent='File lokal (file://) sering ditolak YouTube. Buka hasil unggahan lewat GitHub Pages (HTTPS).';
-    }else{
-      hint.textContent='Memuat '+(alternateMode?'pemutar alternatif':'pemutar YouTube')+' di halaman ini. Jika Error 153 muncul, gunakan Coba Mode Lain.';
-    }
+    hint.textContent=location.protocol==='file:'
+      ? 'Buka website melalui alamat GitHub Pages (HTTPS), bukan file lokal, supaya referer YouTube dikirim.'
+      : 'Memuat video di website… Jika YouTube menampilkan Error 153, tekan Coba Mode Lain. Jika kedua mode ditolak, pilih Lihat video langsung.';
     const frame=document.createElement('iframe');
     frame.id='videoEmbedFrame';
     frame.title=titleEl.textContent+' — video pembelajaran';
-    frame.referrerPolicy='strict-origin-when-cross-origin';
+    frame.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
     frame.setAttribute('allow','accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
     frame.setAttribute('allowfullscreen','');
     frame.setAttribute('loading','eager');
+    frame.addEventListener('load',()=>{
+      // load hanya berarti dokumen iframe sudah dimuat, BUKAN video pasti dapat diputar.
+      if(token===generation && mount.isConnected)
+        hint.textContent='Jika video masih menampilkan Error 153: klik Coba Mode Lain. YouTube dapat menolak video tertentu meski iframe sudah dimuat.';
+    },{once:true});
+    frame.addEventListener('error',()=>{
+      if(token===generation && mount.isConnected)showError('jaringan');
+    },{once:true});
     frame.src=buildEmbedUrl(selectedId);
     mount.appendChild(frame);
-    if(apiReady){
-      try{
-        playerApi=new window.YT.Player(frame,{
-          events:{
-            onError:e=>{if(token===generation)showError(Number(e.data))},
-            onReady:()=>{if(token===generation && !errorPanel.hidden)errorPanel.hidden=true}
-          }
-        });
-      }catch(e){console.warn('YouTube API monitoring unavailable:',e)}
-    }else{
-      hint.textContent='YouTube Player API tidak dapat dimuat. Pemutar biasa tetap dicoba. Periksa pemblokir iklan / privasi jika Error 153 berlanjut.';
-    }
   };
   const stopVideo=()=>{
     generation++;
