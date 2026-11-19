@@ -1547,6 +1547,56 @@ table.tech th{color:var(--cyan);background:rgba(42,99,159,.15);letter-spacing:.0
 .video-player-error p{max-width:590px;font-size:12px;line-height:1.55;color:#cbd5e1}
 .video-fallback-link{display:inline-flex;justify-content:center;align-items:center;padding:9px 14px;border-radius:9px;border:1px solid rgba(34,211,238,.5);background:rgba(34,211,238,.14);font-weight:600;font-size:12px;color:#fff;text-decoration:none}
 .video-fallback-link:hover{background:rgba(34,211,238,.24)}
+
+/* Beranda pengantar: judul tetap di atas, pengertian dan simulasi berbagi lebar. */
+.app-shell.home-view .home-hero{
+  display:flex;flex-direction:column;gap:16px;height:100%;min-height:0;
+  overflow-y:auto;overflow-x:hidden;padding:0 4px 8px 0;
+}
+.app-shell.home-view .home-hero-left{flex:0 0 auto;padding:0 2px}
+.app-shell.home-view .home-learning-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:18px;align-items:stretch;min-height:0;flex:1 1 auto;
+}
+.app-shell.home-view .home-intro-card{
+  min-width:0;min-height:350px;max-height:clamp(355px,61dvh,480px);
+  overflow-y:auto;padding:clamp(16px,2vw,24px);
+  border:1px solid var(--panel-border);border-radius:20px;
+  background:var(--panel);box-shadow:var(--shadow);
+  scrollbar-width:thin;scrollbar-color:rgba(91,185,212,.4) transparent;
+}
+.app-shell.home-view .home-intro-eyebrow{
+  display:flex;align-items:center;gap:8px;margin-bottom:9px;
+  font:700 10px 'JetBrains Mono',monospace;letter-spacing:.11em;color:var(--cyan);
+}
+.app-shell.home-view .home-intro-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);flex:0 0 7px}
+.app-shell.home-view .home-intro-heading{font-size:clamp(20px,2.1vw,28px);line-height:1.2;letter-spacing:-.03em;margin-bottom:11px;color:var(--heading)}
+.app-shell.home-view .home-intro-definition{
+  color:var(--text-soft);font-size:13px;line-height:1.75;max-width:62ch;
+}
+.app-shell.home-view .home-intro-definition strong{color:var(--heading)}
+.app-shell.home-view .home-intro-divider{height:1px;background:var(--panel-border);margin:18px 0 15px}
+.app-shell.home-view .home-intro-topic{display:grid;grid-template-columns:31px minmax(0,1fr);gap:11px;margin:0 0 14px}
+.app-shell.home-view .home-intro-number{font:700 11px 'JetBrains Mono',monospace;color:var(--cyan);padding-top:3px}
+.app-shell.home-view .home-intro-topic h3{font-size:13px;line-height:1.4;color:var(--heading);margin:0 0 4px}
+.app-shell.home-view .home-intro-topic p{font-size:12px;line-height:1.65;color:var(--text-soft);margin:0}
+.app-shell.home-view .home-intro-tip{display:flex;gap:10px;align-items:flex-start;margin-top:13px;padding:10px 12px;border-radius:10px;border:1px solid rgba(34,211,238,.2);background:rgba(34,211,238,.055);color:var(--text-soft);font-size:11.5px;line-height:1.5}
+.app-shell.home-view .home-intro-tip svg{width:17px;height:17px;flex:0 0 17px;color:var(--cyan)}
+.app-shell.home-view .home-hero-right.weld-hero-preview{
+  flex:0 0 auto;min-height:350px;height:clamp(355px,61dvh,480px);width:100%;
+  border-radius:20px;
+}
+@media(max-width:760px){
+  .app-shell.home-view .home-hero{height:100%;gap:12px}
+  .app-shell.home-view .home-learning-grid{grid-template-columns:1fr;gap:12px;flex:0 0 auto}
+  .app-shell.home-view .home-intro-card{min-height:0;max-height:none;overflow:visible;padding:17px}
+  .app-shell.home-view .home-hero-right.weld-hero-preview{height:clamp(290px,50dvh,380px);min-height:290px;flex:0 0 auto}
+}
+@media(max-width:390px){
+  .app-shell.home-view .home-intro-card{padding:14px}
+  .app-shell.home-view .home-intro-definition{font-size:12px}
+  .app-shell.home-view .home-hero-right.weld-hero-preview{height:300px;min-height:300px}
+}
 </style>
 </head>
 <body>
@@ -1952,10 +2002,27 @@ App.renderers.home=function(){
       <div class="home-hero-left">
         <h1 class="home-hero-title"><span class="home-title-line">Pembelajaran</span><span class="home-title-line">Section Welding (Weld)</span></h1>
       </div>
-      <div class="home-hero-right weld-hero-preview" aria-label="Simulasi animasi pengelasan 3D yang dapat dioperasikan dari beranda">
-        <iframe id="homeWeld3D" class="weld-hero-iframe" title="Simulasi 3D pengelasan interaktif; putar kamera dengan drag, zoom dengan roda mouse, dan gunakan kontrol di dalam" loading="eager"></iframe>
-        <div class="weld-hero-label"><span class="weld-live-dot"></span> SIMULASI PENGELASAN 3D</div>
-        <button type="button" id="openWeld3D" class="weld-hero-expand" aria-label="Perbesar simulasi pengelasan 3D" title="Buka simulasi 3D lengkap dengan seluruh kontrol"><i data-lucide="maximize"></i><span>Buka Simulasi 3D</span></button>
+      <div class="home-learning-grid">
+        <section class="home-intro-card" aria-labelledby="weld-intro-title">
+          <div class="home-intro-eyebrow"><span class="home-intro-dot"></span> PENGANTAR PEMBELAJARAN</div>
+          <h2 id="weld-intro-title" class="home-intro-heading">Apa itu Welding?</h2>
+          <p class="home-intro-definition"><strong>Welding atau pengelasan</strong> adalah proses penyambungan dua atau lebih bagian material, umumnya logam, dengan memanfaatkan panas, tekanan, atau keduanya, dengan atau tanpa bahan tambah, sehingga terbentuk sambungan permanen.</p>
+          <div class="home-intro-divider"></div>
+          <div class="home-intro-topic">
+            <span class="home-intro-number">01</span>
+            <div><h3>Bagaimana proses pengelasan bekerja?</h3><p>Pada pengelasan busur listrik, panas busur antara elektroda dan benda kerja melelehkan logam pada area sambungan. Setelah mendingin dan membeku, terbentuk <em>rigi las</em> yang menyatukan material.</p></div>
+          </div>
+          <div class="home-intro-topic">
+            <span class="home-intro-number">02</span>
+            <div><h3>Apa yang akan dipelajari?</h3><p>Pengenalan mesin dan peralatan, teknik SMAW, MIG/MAG dan TIG, elektroda dan polaritas, posisi pengelasan, pemeriksaan hasil las, jenis cacat, serta keselamatan kerja.</p></div>
+          </div>
+          <div class="home-intro-tip"><i data-lucide="shield-check" aria-hidden="true"></i><span>Awali dengan materi dasar dan K3. Gunakan simulasi di samping untuk mengamati proses las dari berbagai sudut kamera.</span></div>
+        </section>
+        <div class="home-hero-right weld-hero-preview" aria-label="Simulasi animasi pengelasan 3D yang dapat dioperasikan dari beranda">
+          <iframe id="homeWeld3D" class="weld-hero-iframe" title="Simulasi 3D pengelasan interaktif; putar kamera dengan drag, zoom dengan roda mouse, dan gunakan kontrol di dalam" loading="eager"></iframe>
+          <div class="weld-hero-label"><span class="weld-live-dot"></span> SIMULASI PENGELASAN 3D</div>
+          <button type="button" id="openWeld3D" class="weld-hero-expand" aria-label="Perbesar simulasi pengelasan 3D" title="Buka simulasi 3D lengkap dengan seluruh kontrol"><i data-lucide="maximize"></i><span>Buka Simulasi 3D</span></button>
+        </div>
       </div>
     </div>
   </div>`;
